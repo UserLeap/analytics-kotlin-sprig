@@ -19,7 +19,7 @@ Select your Android Source from `My Sources` dashboard on segment, and get the v
 Add the Sprig destination where Segment is configured. Either in your Application class:
 
 ```kotlin
-analytics = Analytics(BuildConfig.SEGMENT_KEY, this) {
+analytics = Analytics(BuildConfig.SEGMENT_WRITE_KEY, this) {
     // Automatically track Lifecycle events
     trackApplicationLifecycleEvents = true
     flushAt = 3
@@ -29,7 +29,7 @@ analytics = Analytics(BuildConfig.SEGMENT_KEY, this) {
 
 or in an Activity class:
 ```kotlin
-analytics = Analytics(BuildConfig.SEGMENT_KEY, this) {
+analytics = Analytics(BuildConfig.SEGMENT_WRITE_KEY, this) {
     // Automatically track Lifecycle events
     trackApplicationLifecycleEvents = true
     flushAt = 3
