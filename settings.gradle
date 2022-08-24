@@ -1,1 +1,2 @@
 include ':destination'
+include ':example'

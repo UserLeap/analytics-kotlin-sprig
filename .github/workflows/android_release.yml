@@ -1,0 +1,51 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  OSSRH_USERNAME: "${{ secrets.OSSRH_USERNAME }}"
+  OSSRH_PASSWORD: "${{ secrets.OSSRH_PASSWORD }}"
+  SONATYPE_STAGING_PROFILE_ID: "${{ secrets.SONATYPE_STAGING_PROFILE_ID }}"
+  SIGNING_KEY: "${{ secrets.GPG_KEY_CONTENTS_BASE64 }}"
+  KEY_ID: "${{ secrets.SIGNING_KEY_ID }}"
+  KEY_PASSWORD: "${{ secrets.SIGNING_PASSWORD }}"
+  KEY_RING_FILE: "secret.kbx"
+  TAG_NAME: "${{ github.ref_name }}"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: gradle # This will automatically cache dependencies
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Download Dependencies
+      run: ./gradlew androidDependencies
+
+    - name: Build Destination
+      run: ./gradlew clean :destination:build
+
+    - name: Add Maven Central signing key
+      run: base64 -d <<< ${{ env.SIGNING_KEY }} > destination/${{ env.KEY_RING_FILE }}
+
+    - name: Upload builds to Sonatype and publish to Maven Central
+      run: ./gradlew publishReleasePublicationToSonatypeRepository closeAndReleaseStagingRepository --max-workers 1
+
+    - name: Publish Destination locally for example app to use
+      run: ./gradlew publishToMavenLocal
+
+    - name: Build Example APK
+      run: ./gradlew :example:assembleRelease
