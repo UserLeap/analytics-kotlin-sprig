@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: "/destination"
+    schedule:
+      interval: daily
+    allow:
+      # Only use dependabot to monitor for Sprig & Segment updates
+      - dependency-name: "com.segment.analytics.kotlin:android"
+      - dependency-name: "com.userleap:userleap-android-sdk"
