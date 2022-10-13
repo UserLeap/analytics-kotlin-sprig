@@ -3,6 +3,7 @@ package com.userleap.destination
 import com.segment.analytics.kotlin.core.*
 import com.segment.analytics.kotlin.core.platform.Plugin
 import com.userleap.Sprig
+import com.userleap.SurveyState
 import com.userleap.destination.SprigDestination.Companion.EMAIL_KEY
 import io.mockk.every
 import io.mockk.mockk
@@ -57,12 +58,14 @@ class SprigDestinationTests {
     fun `track is handled correctly`() {
         val eventName = "Product Clicked"
         val id = "anonId"
+        val uid = "userId"
 
         val sampleEvent = TrackEvent(
             event = eventName,
             properties = JsonObject(mapOf("Item Name" to JsonPrimitive("Biscuits")))
         ).apply {
             messageId = "qwerty-1234"
+            userId = uid
             anonymousId = id
             integrations = emptyJsonObject
             context = emptyJsonObject
@@ -75,7 +78,9 @@ class SprigDestinationTests {
         assertEquals(trackEvent.event, eventName)
 
         // Verify the event is sent to Sprig with the anonymous ID
-        verify(exactly = 1) { Sprig.track(eventName, null, id, JsonObject(mapOf("Item Name" to JsonPrimitive("Biscuits")))) }
+        verify(exactly = 1) {
+            Sprig.track(eventName, uid, id, JsonObject(mapOf("Item Name" to JsonPrimitive("Biscuits"))), any())
+        }
     }
 
     @Test
