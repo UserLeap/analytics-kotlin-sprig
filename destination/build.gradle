@@ -42,6 +42,7 @@ android {
 
     testOptions {
         unitTests.includeAndroidResources = true
+        unitTests.returnDefaultValues = true
         unitTests.all {
             useJUnitPlatform()
             reports {
@@ -72,7 +73,7 @@ dependencies {
     // Add Roboelectric dependencies.
     testImplementation 'org.robolectric:robolectric:4.5'
     testImplementation 'androidx.test:core:1.4.0'
-
+//    testImplementation 'org.json:json:20180813'
     // Add JUnit4 legacy dependencies.
     testImplementation 'junit:junit:4.13.2'
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.7.2'
