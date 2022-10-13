@@ -56,7 +56,8 @@ class SprigDestination(
             Sprig.track(
                 event = it.event,
                 userId = it.userId,
-                partnerAnonymousId = it.anonymousId
+                partnerAnonymousId = it.anonymousId,
+                properties = it.properties,
             ) { surveyState ->
                 if (surveyState == SurveyState.READY) {
                     activityReference?.get()?.let(Sprig::presentSurvey)

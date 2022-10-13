@@ -75,7 +75,7 @@ class SprigDestinationTests {
         assertEquals(trackEvent.event, eventName)
 
         // Verify the event is sent to Sprig with the anonymous ID
-        verify(exactly = 1) { Sprig.track(eventName, any(), id, any()) }
+        verify(exactly = 1) { Sprig.track(eventName, any(), id, JsonObject(mapOf("Item Name" to JsonPrimitive("Biscuits")))) }
     }
 
     @Test
