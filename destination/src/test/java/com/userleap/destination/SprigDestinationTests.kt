@@ -3,7 +3,6 @@ package com.userleap.destination
 import com.segment.analytics.kotlin.core.*
 import com.segment.analytics.kotlin.core.platform.Plugin
 import com.userleap.Sprig
-import com.userleap.SurveyState
 import com.userleap.destination.SprigDestination.Companion.EMAIL_KEY
 import io.mockk.every
 import io.mockk.mockk
