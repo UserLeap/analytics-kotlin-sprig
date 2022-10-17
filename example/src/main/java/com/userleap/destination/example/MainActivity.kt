@@ -16,6 +16,10 @@ class MainActivity : AppCompatActivity() {
             setContentView(root)
 
             track.setOnClickListener {
+                analytics.track(
+                    "Track with properties",
+                    properties = JsonObject(mapOf("age" to JsonPrimitive(12), "item" to JsonPrimitive("bread")))
+                )
                 analytics.track("Track")
             }
 

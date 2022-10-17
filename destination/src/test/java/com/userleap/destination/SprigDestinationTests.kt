@@ -57,12 +57,14 @@ class SprigDestinationTests {
     fun `track is handled correctly`() {
         val eventName = "Product Clicked"
         val id = "anonId"
+        val uid = "userId"
 
         val sampleEvent = TrackEvent(
             event = eventName,
             properties = JsonObject(mapOf("Item Name" to JsonPrimitive("Biscuits")))
         ).apply {
             messageId = "qwerty-1234"
+            userId = uid
             anonymousId = id
             integrations = emptyJsonObject
             context = emptyJsonObject
@@ -75,7 +77,9 @@ class SprigDestinationTests {
         assertEquals(trackEvent.event, eventName)
 
         // Verify the event is sent to Sprig with the anonymous ID
-        verify(exactly = 1) { Sprig.track(eventName, any(), id, any()) }
+        verify(exactly = 1) {
+            Sprig.track(eventName, uid, id, JsonObject(mapOf("Item Name" to JsonPrimitive("Biscuits"))), any())
+        }
     }
 
     @Test
