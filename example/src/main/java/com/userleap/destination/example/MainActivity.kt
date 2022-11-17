@@ -17,8 +17,11 @@ class MainActivity : AppCompatActivity() {
 
             track.setOnClickListener {
                 analytics.track(
-                    "Track with properties",
-                    properties = JsonObject(mapOf("age" to JsonPrimitive(12), "item" to JsonPrimitive("bread")))
+                    "android segment",
+                    properties = JsonObject(mapOf(
+                        "age" to JsonPrimitive(12),
+                        "item" to JsonPrimitive("bread"),
+                        "isFreePlan" to JsonPrimitive(false)))
                 )
                 analytics.track("Track")
             }
@@ -30,7 +33,7 @@ class MainActivity : AppCompatActivity() {
             identify.setOnClickListener {
                 analytics.identify(
                     userId = "X-1234567890",
-                    traits = JsonObject(mapOf("abc" to JsonPrimitive(1)))
+                    traits = JsonObject(mapOf("wow" to JsonPrimitive(123)))
                 )
             }
         }

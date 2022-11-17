@@ -61,7 +61,7 @@ dependencies {
         maven { url 'https://jitpack.io' }
     }
 
-    implementation 'com.segment.analytics.kotlin:android:1.7.0'
+    implementation 'com.segment.analytics.kotlin:android:1.9.2'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.8.0'
@@ -78,5 +78,5 @@ dependencies {
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.7.2'
 
     // The Sprig SDK
-    implementation "com.userleap:userleap-android-sdk:2.7.0"
+    implementation "com.userleap:userleap-android-sdk:2.9.0"
 }

@@ -8,6 +8,7 @@ import com.segment.analytics.kotlin.android.plugins.AndroidLifecycle
 import com.segment.analytics.kotlin.core.*
 import com.segment.analytics.kotlin.core.platform.DestinationPlugin
 import com.segment.analytics.kotlin.core.platform.Plugin
+import com.segment.analytics.kotlin.core.utilities.toContent
 import com.userleap.Sprig
 import com.userleap.SurveyState
 import com.userleap.destination.SprigDestination.Companion.EMAIL_KEY
@@ -57,7 +58,7 @@ class SprigDestination(
                 event = it.event,
                 userId = it.userId,
                 partnerAnonymousId = it.anonymousId,
-                properties = it.properties,
+                properties = getProperties(it.properties),
             ) { surveyState ->
                 if (surveyState == SurveyState.READY) {
                     activityReference?.get()?.let(Sprig::presentSurvey)
@@ -98,6 +99,14 @@ class SprigDestination(
         traits.entries.mapNotNull { (key, value) ->
             value.asString().ifNotEmpty()?.let {
                 this[key.filterEmail()] = it
+            }
+        }
+    }
+
+    private fun getProperties(properties: JsonObject) = mutableMapOf<String, Any>().apply {
+        properties.entries.mapNotNull { (key, value) ->
+            value.toContent()?.let {
+                this[key] = it
             }
         }
     }
