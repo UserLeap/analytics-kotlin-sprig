@@ -58,10 +58,10 @@ class SprigDestinationTests {
         val eventName = "Product Clicked"
         val id = "anonId"
         val uid = "userId"
-
+        val properties = mapOf("Item Name" to JsonPrimitive("Biscuits"))
         val sampleEvent = TrackEvent(
             event = eventName,
-            properties = JsonObject(mapOf("Item Name" to JsonPrimitive("Biscuits")))
+            properties = JsonObject(properties)
         ).apply {
             messageId = "qwerty-1234"
             userId = uid
@@ -78,7 +78,7 @@ class SprigDestinationTests {
 
         // Verify the event is sent to Sprig with the anonymous ID
         verify(exactly = 1) {
-            Sprig.track(eventName, uid, id, JsonObject(mapOf("Item Name" to JsonPrimitive("Biscuits"))), any())
+            Sprig.track(eventName, uid, id, mapOf("Item Name" to "Biscuits"), any())
         }
     }
 
