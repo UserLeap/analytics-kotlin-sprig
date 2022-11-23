@@ -2,6 +2,7 @@ package com.userleap.destination
 
 import android.app.Activity
 import android.app.Application
+import androidx.annotation.Keep
 import androidx.annotation.VisibleForTesting
 import androidx.fragment.app.FragmentActivity
 import com.segment.analytics.kotlin.android.plugins.AndroidLifecycle
@@ -21,6 +22,7 @@ import java.lang.ref.WeakReference
 @Serializable
 data class SprigSettings(val envId: String)
 
+@Keep
 class SprigDestination(
     private val application: Application
 ) : DestinationPlugin(), AndroidLifecycle {
