@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.lang.ref.WeakReference
 
+@Keep
 @Serializable
 data class SprigSettings(val envId: String)
 
