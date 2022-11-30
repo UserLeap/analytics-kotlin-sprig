@@ -49,7 +49,7 @@ android {
 }
 
 dependencies {
-    // Uncomment this to test pre-production release locally using mavenLocal and a custom version
+    // Uncomment this to test pre-production releases locally using mavenLocal and a custom version
     // set in release.gradle
     // repositories {
     //    mavenLocal()
