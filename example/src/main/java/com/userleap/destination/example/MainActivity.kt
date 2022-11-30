@@ -2,6 +2,7 @@ package com.userleap.destination.example
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.segment.analytics.kotlin.core.Properties
 import com.userleap.destination.example.ExampleApplication.Companion.analytics
 import com.userleap.destination.example.databinding.ActivityMainBinding
 import kotlinx.serialization.json.JsonObject
@@ -18,7 +19,7 @@ class MainActivity : AppCompatActivity() {
             track.setOnClickListener {
                 analytics.track(
                     "android segment",
-                    properties = JsonObject(mapOf(
+                    properties = Properties(mapOf(
                         "age" to JsonPrimitive(12),
                         "item" to JsonPrimitive("bread"),
                         "isFreePlan" to JsonPrimitive(false)))
