@@ -61,5 +61,8 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     implementation 'com.segment.analytics.kotlin:android:1.7.0'
-    implementation "com.userleap:segment-analytics-kotlin-destination:${sdkVersionName()}"
+
+    // Change the comment between these two lines to test releases locally
+    implementation project(":destination")
+    //implementation "com.userleap:segment-analytics-kotlin-destination:${sdkVersionName()}"
 }
