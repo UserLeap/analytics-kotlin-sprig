@@ -1,9 +1,11 @@
 name: Android Release
 
 on:
-  push:
-    tags:
-      - '*'
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 env:
   OSSRH_USERNAME: "${{ secrets.OSSRH_USERNAME }}"
@@ -13,7 +15,7 @@ env:
   KEY_ID: "${{ secrets.SIGNING_KEY_ID }}"
   KEY_PASSWORD: "${{ secrets.SIGNING_PASSWORD }}"
   KEY_RING_FILE: "secret.kbx"
-  TAG_NAME: "${{ github.ref_name }}"
+  TAG_NAME: "${{ inputs.version }}"
 
 jobs:
   build:
@@ -22,6 +24,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
     - name: set up JDK 11
       uses: actions/setup-java@v3
       with:
