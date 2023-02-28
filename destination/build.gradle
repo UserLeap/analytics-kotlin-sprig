@@ -80,6 +80,10 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.7.2'
 
+    // Sprig declares the fragment dependency as an `implementation` rather than `api`, so it's
+    // hidden from this project
+    implementation 'androidx.fragment:fragment:1.3.6'
+
     // The Sprig SDK
     implementation "com.userleap:userleap-android-sdk:2.12.0"
 }
