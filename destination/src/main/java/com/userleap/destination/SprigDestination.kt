@@ -61,7 +61,7 @@ class SprigDestination(
                 event = it.event,
                 userId = it.userId,
                 partnerAnonymousId = it.anonymousId,
-                properties = getMap(it.properties),
+                properties = getProperties(it.properties),
             ) { surveyState ->
                 if (surveyState == SurveyState.READY) {
                     activityReference?.get()?.let(Sprig::presentSurvey)
@@ -106,7 +106,7 @@ class SprigDestination(
         }
     }
 
-    private fun getMap(properties: JsonObject) = mutableMapOf<String, Any>().apply {
+    private fun getProperties(properties: JsonObject) = mutableMapOf<String, Any>().apply {
         properties.entries.mapNotNull { (key, value) ->
             value.toContent()?.let {
                 this[key] = it
