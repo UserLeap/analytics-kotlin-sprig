@@ -40,7 +40,7 @@ class SprigDestination(
         super.update(settings, type)
         sprigSettings = settings.destinationSettings<SprigSettings>(key)?.also {
             it.envId.ifNotEmpty()?.let { environment ->
-                Sprig.configure(application, environment)
+                Sprig.configure(application, environment, mapOf("x-ul-installation-method" to "android-segment"))
             }
         }
     }
@@ -61,7 +61,7 @@ class SprigDestination(
                 event = it.event,
                 userId = it.userId,
                 partnerAnonymousId = it.anonymousId,
-                properties = getProperties(it.properties),
+                properties = getMap(it.properties),
             ) { surveyState ->
                 if (surveyState == SurveyState.READY) {
                     activityReference?.get()?.let(Sprig::presentSurvey)
@@ -106,7 +106,7 @@ class SprigDestination(
         }
     }
 
-    private fun getProperties(properties: JsonObject) = mutableMapOf<String, Any>().apply {
+    private fun getMap(properties: JsonObject) = mutableMapOf<String, Any>().apply {
         properties.entries.mapNotNull { (key, value) ->
             value.toContent()?.let {
                 this[key] = it
