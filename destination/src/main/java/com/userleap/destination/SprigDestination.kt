@@ -40,7 +40,7 @@ class SprigDestination(
         super.update(settings, type)
         sprigSettings = settings.destinationSettings<SprigSettings>(key)?.also {
             it.envId.ifNotEmpty()?.let { environment ->
-                Sprig.configure(application, environment)
+                Sprig.configure(application, environment, mapOf("x-ul-installation-method" to "android-segment"))
             }
         }
     }
