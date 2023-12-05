@@ -70,6 +70,19 @@ class SprigDestination(
         }
     }
 
+    override fun screen(payload: ScreenEvent) = payload.also {
+        Sprig.track(
+            event = it.name,
+            userId = it.userId,
+            partnerAnonymousId = it.anonymousId,
+            properties = getProperties(it.properties),
+        ) { surveyState ->
+            if (surveyState == SurveyState.READY) {
+                activityReference?.get()?.let(Sprig::presentSurvey)
+            }
+        }
+    }
+
     /**
      * Switch user IDs
      */

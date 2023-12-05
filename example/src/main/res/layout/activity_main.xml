@@ -10,6 +10,13 @@
     tools:ignore="HardcodedText">
 
     <Button
+        android:id="@+id/screen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin"
+        android:text="Screen" />
+
+    <Button
         android:id="@+id/track"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
