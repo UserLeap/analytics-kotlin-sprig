@@ -19,12 +19,27 @@ class MainActivity : AppCompatActivity() {
             track.setOnClickListener {
                 analytics.track(
                     "android segment",
-                    properties = Properties(mapOf(
-                        "age" to JsonPrimitive(12),
-                        "item" to JsonPrimitive("bread"),
-                        "isFreePlan" to JsonPrimitive(false)))
+                    properties = Properties(
+                        mapOf(
+                            "age" to JsonPrimitive(12),
+                            "item" to JsonPrimitive("bread"),
+                            "isFreePlan" to JsonPrimitive(false)
+                        )
+                    )
                 )
                 analytics.track("Track")
+            }
+
+            screen.setOnClickListener {
+                analytics.screen(
+                    "Android Segment Screen",
+                    properties = Properties(
+                        mapOf(
+                            "segmentActionsAndroid" to JsonPrimitive(true),
+                            "deviceType" to JsonPrimitive("android")
+                        )
+                    )
+                )
             }
 
             signedOut.setOnClickListener {
