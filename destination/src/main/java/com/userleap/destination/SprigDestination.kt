@@ -40,7 +40,15 @@ class SprigDestination(
         super.update(settings, type)
         sprigSettings = settings.destinationSettings<SprigSettings>(key)?.also {
             it.envId.ifNotEmpty()?.let { environment ->
-                Sprig.configure(application, environment, mapOf("x-ul-installation-method" to "android-segment"))
+                val version = getVersion()
+                Sprig.configure(
+                    application,
+                    environment,
+                    mapOf(
+                        "x-ul-installation-method" to "android-segment",
+                        "x-ul-package-version" to version
+                    )
+                )
             }
         }
     }
@@ -124,6 +132,20 @@ class SprigDestination(
             value.toContent()?.let {
                 this[key] = it
             }
+        }
+    }
+
+    private fun getVersion(): String {
+        // Load version from version.properties file
+        try {
+            val versionProperties = Properties()
+            versionProperties.load(
+                SprigDestination::class.java.classLoader.getResourceAsStream("version.properties")
+            )
+            return versionProperties.getProperty("VERSION", "Unknown")
+        } catch (e: Exception) {
+            // Handle exceptions, log, or fallback to a default value
+            return "Unknown"
         }
     }
 
