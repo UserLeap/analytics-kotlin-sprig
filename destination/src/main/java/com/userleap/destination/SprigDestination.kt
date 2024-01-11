@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.lang.ref.WeakReference
 import java.util.Properties
+import java.io.File
 
 @Keep
 @Serializable
@@ -138,16 +139,11 @@ class SprigDestination(
 
     private fun getVersion(): String {
         // Load version from version.properties file
-        try {
-            val versionProperties = Properties()
-            versionProperties.load(
-                SprigDestination::class.java.classLoader.getResourceAsStream("version.properties")
-            )
-            return versionProperties.getProperty("VERSION", "Unknown")
-        } catch (e: Exception) {
-            // Handle exceptions, log, or fallback to a default value
-            return "Unknown"
-        }
+        val rootDir = System.getProperty("user.dir")
+        val versionPropertiesFile = java.io.File(rootDir, "version.properties").absoluteFile
+        val versionProperties = Properties()
+        versionProperties.load(versionPropertiesFile.inputStream())
+        return versionProperties["VERSION"]?.toString() ?: "0.0.0"
     }
 
     companion object {

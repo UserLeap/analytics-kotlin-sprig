@@ -28,7 +28,7 @@ class SprigDestinationTests {
 
     @Test
     fun `settings are updated correctly`() {
-        every { Sprig.configure(any(), TEST_ENV, mapOf("x-ul-installation-method" to "android-segment")) } returns Unit
+        every { Sprig.configure(any(), TEST_ENV, mapOf("x-ul-installation-method" to "android-segment", "x-ul-package-version" to any())) } returns Unit
 
         // An simple settings blob
         val settingsBlob: Settings = Json.decodeFromString(
@@ -50,7 +50,7 @@ class SprigDestinationTests {
         assertEquals(sprigDestination.sprigSettings?.envId, TEST_ENV)
 
         // Verify Sprig was configured with the envId
-        verify(exactly = 1) { Sprig.configure(any(), TEST_ENV, mapOf("x-ul-installation-method" to "android-segment")) }
+        verify(exactly = 1) { Sprig.configure(any(), TEST_ENV, mapOf("x-ul-installation-method" to "android-segment", "x-ul-package-version" to any())) }
     }
 
     @Test
