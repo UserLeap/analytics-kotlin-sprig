@@ -18,6 +18,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.lang.ref.WeakReference
+import java.util.Properties
 
 @Keep
 @Serializable
