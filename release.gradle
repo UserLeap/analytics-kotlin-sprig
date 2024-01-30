@@ -1,5 +1,12 @@
 ext.versionAndRelease = {
-    def version = System.getenv('TAG_NAME') ?: '1.1.3'
+    Properties properties = new Properties()
+    if (project.rootProject.file("version.properties").exists()) {
+        properties.load(project.rootProject.file("../../version.properties").newDataInputStream())
+    }
+    String tag = properties.getProperty("VERSION", "")
+    if (tag == "") {
+        throw new GradleException("VERSION is not defined in version.properties!")
+    }
     return version.split("-", 2) // '1.2.3-rc1' -> ['1.2.3' , 'rc1']
 }
 

@@ -10,6 +10,7 @@ import com.segment.analytics.kotlin.core.*
 import com.segment.analytics.kotlin.core.platform.DestinationPlugin
 import com.segment.analytics.kotlin.core.platform.Plugin
 import com.segment.analytics.kotlin.core.utilities.toContent
+import com.userleap.BuildConfig
 import com.userleap.Sprig
 import com.userleap.SurveyState
 import com.userleap.destination.SprigDestination.Companion.EMAIL_KEY
@@ -40,7 +41,14 @@ class SprigDestination(
         super.update(settings, type)
         sprigSettings = settings.destinationSettings<SprigSettings>(key)?.also {
             it.envId.ifNotEmpty()?.let { environment ->
-                Sprig.configure(application, environment, mapOf("x-ul-installation-method" to "android-segment"))
+                Sprig.configure(
+                    application, 
+                    environment, 
+                    mapOf(
+                        "x-ul-installation-method" to "android-segment",
+                        "x-ul-package-version" to BuildConfig.PUBLISH_VERSION
+                    )
+                )
             }
         }
     }
