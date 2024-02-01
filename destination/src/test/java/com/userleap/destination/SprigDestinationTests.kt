@@ -32,10 +32,7 @@ class SprigDestinationTests {
             Sprig.configure(
                 any(),
                 TEST_ENV, 
-                mapOf(
-                    "x-ul-installation-method" to "android-segment",
-                    "x-ul-package-header" to "1.2.2"
-                )
+                any()
             )
         } returns Unit
 
@@ -63,10 +60,7 @@ class SprigDestinationTests {
             Sprig.configure(
                 any(),
                 TEST_ENV,
-                mapOf(
-                    "x-ul-installation-method" to "android-segment",
-                    "x-ul-package-version" to "1.2.2"
-                )
+                any()
             )
         }
     }
