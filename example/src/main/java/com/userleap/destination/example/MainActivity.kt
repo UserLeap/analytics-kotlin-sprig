@@ -3,8 +3,8 @@ package com.userleap.destination.example
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.segment.analytics.kotlin.core.Properties
+import com.sprig.analytics.kotlin.sprig.testapp.databinding.ActivityMainBinding
 import com.userleap.destination.example.ExampleApplication.Companion.analytics
-import com.userleap.destination.example.databinding.ActivityMainBinding
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 

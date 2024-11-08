@@ -6,7 +6,9 @@ plugins {
 apply from: '../release.gradle'
 
 android {
-    compileSdkVersion 31
+    namespace "com.sprig.analytics.kotlin.sprig.testapp"
+    compileSdkVersion 33
+    android.buildFeatures.buildConfig true
 
     defaultConfig {
         applicationId "com.userleap.destination.example"
@@ -60,7 +62,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    implementation 'com.segment.analytics.kotlin:android:1.7.0'
+    implementation 'com.segment.analytics.kotlin:android:1.9.2'
 
     // Change the comment between these two lines to test releases locally
     implementation project(":destination")

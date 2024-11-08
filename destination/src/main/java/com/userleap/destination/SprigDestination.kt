@@ -10,6 +10,7 @@ import com.segment.analytics.kotlin.core.*
 import com.segment.analytics.kotlin.core.platform.DestinationPlugin
 import com.segment.analytics.kotlin.core.platform.Plugin
 import com.segment.analytics.kotlin.core.utilities.toContent
+import com.sprig.anayltics.kotlin.sprig.BuildConfig
 import com.userleap.Sprig
 import com.userleap.SurveyState
 import com.userleap.destination.SprigDestination.Companion.EMAIL_KEY
@@ -46,7 +47,8 @@ class SprigDestination(
                     mapOf(
                         "x-ul-installation-method" to "android-segment",
                         "x-ul-package-version" to BuildConfig.PACKAGE_VERSION
-                    )
+                    ),
+                    null
                 )
             }
         }
