@@ -6,7 +6,7 @@ plugins {
 apply from: '../release.gradle'
 
 android {
-    namespace "com.sprig.analytics.kotlin.sprig.testapp"
+    namespace "com.userleap.destination.example"
     compileSdkVersion 33
     android.buildFeatures.buildConfig true
 

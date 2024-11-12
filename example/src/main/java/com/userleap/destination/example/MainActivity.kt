@@ -3,7 +3,7 @@ package com.userleap.destination.example
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.segment.analytics.kotlin.core.Properties
-import com.sprig.analytics.kotlin.sprig.testapp.databinding.ActivityMainBinding
+import com.userleap.destination.example.databinding.ActivityMainBinding
 import com.userleap.destination.example.ExampleApplication.Companion.analytics
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
 
             track.setOnClickListener {
                 analytics.track(
-                    "android segment",
+                    "[TEST] All Question Types - No Routing",
                     properties = Properties(
                         mapOf(
                             "age" to JsonPrimitive(12),

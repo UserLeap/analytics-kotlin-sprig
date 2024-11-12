@@ -3,7 +3,7 @@ package com.userleap.destination.example
 import android.app.Application
 import com.segment.analytics.kotlin.android.Analytics
 import com.segment.analytics.kotlin.core.Analytics
-import com.sprig.analytics.kotlin.sprig.testapp.BuildConfig
+import com.userleap.destination.example.BuildConfig
 import com.userleap.destination.SprigDestination
 
 class ExampleApplication : Application() {
