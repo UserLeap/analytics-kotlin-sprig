@@ -31,7 +31,9 @@ class SprigDestinationTests {
         every { 
             Sprig.configure(
                 any(),
-                TEST_ENV
+                TEST_ENV,
+                any(),
+                null
             )
         } returns Unit
 
