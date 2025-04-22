@@ -6,12 +6,17 @@ plugins {
 apply from: '../release.gradle'
 
 android {
-    compileSdkVersion 31
+    namespace "com.userleap.destination.example"
+    compileSdkVersion 33
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId "com.userleap.destination.example"
         minSdkVersion 26
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 
