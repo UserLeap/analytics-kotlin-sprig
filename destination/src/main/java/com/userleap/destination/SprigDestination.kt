@@ -41,12 +41,13 @@ class SprigDestination(
         sprigSettings = settings.destinationSettings<SprigSettings>(key)?.also {
             it.envId.ifNotEmpty()?.let { environment ->
                 Sprig.configure(
-                    application, 
+                    application,
                     environment, 
                     mapOf(
                         "x-ul-installation-method" to "android-segment",
                         "x-ul-package-version" to BuildConfig.PACKAGE_VERSION
-                    )
+                    ),
+                    null
                 )
             }
         }
