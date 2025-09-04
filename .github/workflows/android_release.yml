@@ -45,14 +45,41 @@ jobs:
         echo "Building and signing artifacts..."
         ./gradlew :destination:publishReleasePublicationToMavenLocal --info
         
-        echo "Creating bundle for Portal upload..."
-        cd ~/.m2/repository/com/userleap/segment-analytics-kotlin-destination/1.2.5/
-        zip -r segment-analytics-kotlin-destination-1.2.5-bundle.zip *.pom *.jar *.aar *.asc
+        echo "Creating properly structured bundle for Portal upload..."
+        # Get the version from Gradle properties or use a default
+        VERSION=$(./gradlew -q :destination:printVersion 2>/dev/null || echo "1.2.5")
+        GROUP_PATH="com/userleap"
+        ARTIFACT_ID="segment-analytics-kotlin-destination"
+        
+        # Create temporary directory with proper Maven structure
+        BUNDLE_DIR="/tmp/maven-bundle"
+        ARTIFACT_DIR="$BUNDLE_DIR/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
+        mkdir -p "$ARTIFACT_DIR"
+        
+        # Copy artifacts from local Maven repository
+        LOCAL_REPO="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
+        cp "$LOCAL_REPO"/*.pom "$ARTIFACT_DIR/"
+        cp "$LOCAL_REPO"/*.aar "$ARTIFACT_DIR/" 2>/dev/null || true
+        cp "$LOCAL_REPO"/*.jar "$ARTIFACT_DIR/" 2>/dev/null || true
+        cp "$LOCAL_REPO"/*.asc "$ARTIFACT_DIR/"
+        
+        # Generate MD5 and SHA1 checksums for all files
+        cd "$ARTIFACT_DIR"
+        for file in *.pom *.aar *.jar; do
+          if [ -f "$file" ]; then
+            md5sum "$file" | cut -d' ' -f1 > "$file.md5"
+            sha1sum "$file" | cut -d' ' -f1 > "$file.sha1"
+          fi
+        done
+        
+        # Create bundle zip from the root of the structure
+        cd "$BUNDLE_DIR"
+        zip -r "/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" .
         
         echo "Uploading bundle to Maven Central Portal..."
         curl -X POST \
           -H "Content-Type: multipart/form-data" \
-          -F "bundle=@segment-analytics-kotlin-destination-1.2.5-bundle.zip" \
+          -F "bundle=@/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" \
           -u "$MAVEN_CENTRAL_USERNAME:$MAVEN_CENTRAL_TOKEN" \
           "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
         
