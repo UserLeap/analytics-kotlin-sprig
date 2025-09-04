@@ -40,11 +40,17 @@ jobs:
       run: ./gradlew clean :destination:build
     - name: Add Maven Central signing key
       run: base64 -d <<< ${{ env.SIGNING_KEY }} > destination/${{ env.KEY_RING_FILE }}
-    - name: Upload builds to Maven Central Portal
+    - name: Upload builds to Maven Central Portal and transfer
       run: |
         echo "Publishing to Maven Central Portal..."
         ./gradlew :destination:publishReleasePublicationToSonatypeRepository --info
-        echo "Upload completed!"
+        
+        echo "Transferring to Central Portal for visibility..."
+        curl -X POST \
+          -u "$ORG_GRADLE_PROJECT_mavenCentralUsername:$ORG_GRADLE_PROJECT_mavenCentralPassword" \
+          "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/com.userleap"
+        
+        echo "Upload and transfer completed!"
       env:
         # Use the original variable names that Gradle expects
         ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
