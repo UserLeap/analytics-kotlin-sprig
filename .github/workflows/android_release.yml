@@ -40,15 +40,26 @@ jobs:
       run: ./gradlew clean :destination:build
     - name: Add Maven Central signing key
       run: base64 -d <<< ${{ env.SIGNING_KEY }} > destination/${{ env.KEY_RING_FILE }}
-    - name: Upload builds to Maven Central Portal
+    - name: Build and publish to Maven Central Portal
       run: |
-        echo "Publishing to Maven Central Portal..."
-        ./gradlew :destination:publishReleasePublicationToOSSRHRepository --info
+        echo "Building and signing artifacts..."
+        ./gradlew :destination:publishReleasePublicationToMavenLocal --info
+        
+        echo "Creating bundle for Portal upload..."
+        cd ~/.m2/repository/com/userleap/segment-analytics-kotlin-destination/1.2.5/
+        zip -r segment-analytics-kotlin-destination-1.2.5-bundle.zip *.pom *.jar *.aar *.asc
+        
+        echo "Uploading bundle to Maven Central Portal..."
+        curl -X POST \
+          -H "Content-Type: multipart/form-data" \
+          -F "bundle=@segment-analytics-kotlin-destination-1.2.5-bundle.zip" \
+          -u "$MAVEN_CENTRAL_USERNAME:$MAVEN_CENTRAL_TOKEN" \
+          "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
+        
         echo "Upload completed!"
       env:
-        # Use the original variable names that Gradle expects
-        ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-        ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+        MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+        MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
     - name: Publish Destination locally for example app to use
       run: ./gradlew publishToMavenLocal
     - name: Build Example APK
