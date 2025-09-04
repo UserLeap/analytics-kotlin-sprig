@@ -1,10 +1,15 @@
-name: Android Segment Release
+name: Segment Release
 on:
-  workflow_call:
-    inputs:
-      version:
-        required: true
-        type: string
+  # Temporarily changed from workflow_call to push trigger
+  push:
+    branches:
+      - release
+  # Keep workflow_call for when you want to revert back
+  # workflow_call:
+  #   inputs:
+  #     version:
+  #       required: true
+  #       type: string
 env:
   # UPDATED: Use new Maven Central Portal credentials instead of OSSRH
   MAVEN_CENTRAL_USERNAME: "${{ secrets.MAVEN_CENTRAL_USERNAME }}"
@@ -14,7 +19,7 @@ env:
   KEY_ID: "${{ secrets.SIGNING_KEY_ID }}"
   KEY_PASSWORD: "${{ secrets.SIGNING_PASSWORD }}"
   KEY_RING_FILE: "secret.kbx"
-  TAG_NAME: "${{ inputs.version }}"
+  TAG_NAME: "${{ github.ref_name }}" # Changed from inputs.version since we no longer have inputs
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,7 +42,7 @@ jobs:
     - name: Upload builds to Maven Central Portal and transfer
       run: |
         echo "Publishing to Maven Central Portal..."
-        ./gradlew :destination:publishReleasePublicationToOSSRHRepository --info
+        ./gradlew :destination:publishReleasePublicationToSonatypeRepository --info
         
         echo "Transferring to Central Portal for visibility..."
         curl -X POST \
