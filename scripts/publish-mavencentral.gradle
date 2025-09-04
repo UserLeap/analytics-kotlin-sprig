@@ -54,9 +54,9 @@ publishing {
     }
     repositories {
         maven {
-            name = "sonatype"
-            // UPDATED: Use OSSRH repository URL (same as before) but with Portal credentials
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            name = "OSSRH"
+            // UPDATED: Use Portal-compatible OSSRH endpoint
+            url = "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
             credentials {
                 username ossrhUsername
                 password ossrhPassword
