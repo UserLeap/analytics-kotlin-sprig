@@ -11,10 +11,10 @@ on:
   #       required: true
   #       type: string
 env:
-  # UPDATED: Use new Maven Central Portal credentials instead of OSSRH
-  MAVEN_CENTRAL_USERNAME: "${{ secrets.MAVEN_CENTRAL_USERNAME }}"
-  MAVEN_CENTRAL_TOKEN: "${{ secrets.MAVEN_CENTRAL_TOKEN }}"
-  # UPDATED: Remove SONATYPE_STAGING_PROFILE_ID as it's not needed for Portal
+  # Keep original variable names for Gradle compatibility, but use new Portal credentials
+  OSSRH_USERNAME: "${{ secrets.MAVEN_CENTRAL_USERNAME }}"
+  OSSRH_PASSWORD: "${{ secrets.MAVEN_CENTRAL_TOKEN }}"
+  # Remove SONATYPE_STAGING_PROFILE_ID as it's not needed for Portal
   SIGNING_KEY: "${{ secrets.GPG_KEY_CONTENTS_BASE64 }}"
   KEY_ID: "${{ secrets.SIGNING_KEY_ID }}"
   KEY_PASSWORD: "${{ secrets.SIGNING_PASSWORD }}"
@@ -51,7 +51,7 @@ jobs:
         
         echo "Upload and transfer completed!"
       env:
-        # UPDATED: Use Portal credentials instead of OSSRH
+        # Use the original variable names that Gradle expects
         ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
         ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
     - name: Publish Destination locally for example app to use
