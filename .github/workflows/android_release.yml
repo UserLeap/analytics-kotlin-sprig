@@ -3,7 +3,7 @@ on:
   # Temporarily changed from workflow_call to push trigger
   push:
     branches:
-      - release
+      - release-test
   # Keep workflow_call for when you want to revert back
   # workflow_call:
   #   inputs:
