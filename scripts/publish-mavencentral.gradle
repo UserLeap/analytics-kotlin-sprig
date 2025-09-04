@@ -1,9 +1,7 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
-
 group = PUBLISH_GROUP_ID
 version = PUBLISH_VERSION
-
 apply from: "${rootProject.projectDir}/scripts/sonatype.gradle"
 
 publishing {
@@ -12,13 +10,11 @@ publishing {
             groupId PUBLISH_GROUP_ID
             artifactId PUBLISH_ARTIFACT_ID
             version PUBLISH_VERSION
-
             if (project.plugins.findPlugin("com.android.library")) {
                 artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
             } else {
                 artifact("$buildDir/libs/${project.getName()}-${version}.jar")
             }
-
             pom {
                 name = PUBLISH_ARTIFACT_ID
                 description = 'Sprig official Segment Destination'
@@ -44,7 +40,6 @@ publishing {
                 }
                 withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
-
                     project.configurations.implementation.allDependencies.each {
                         if (it.name != 'unspecified') {
                             def dependencyNode = dependenciesNode.appendNode('dependency')
@@ -60,8 +55,8 @@ publishing {
     repositories {
         maven {
             name = "sonatype"
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-
+            // UPDATED: Use new Portal URL instead of staging URL
+            url = "https://central.sonatype.com/api/v1/publisher/upload"
             credentials {
                 username ossrhUsername
                 password ossrhPassword
@@ -70,20 +65,8 @@ publishing {
     }
 }
 
-nexusPublishing {
-    packageGroup = PUBLISH_GROUP_ID
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-
-            stagingProfileId = sonatypeStagingProfileId
-
-            username = ossrhUsername
-            password = ossrhPassword
-        }
-    }
-}
+// REMOVED: nexusPublishing block - not needed for Maven Central Portal
+// The Portal uses a simpler direct upload approach
 
 signing {
     sign publishing.publications
