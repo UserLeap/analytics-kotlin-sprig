@@ -3,8 +3,6 @@ ext["signing.password"] = ''
 ext["signing.secretKeyRingFile"] = ''
 ext["ossrhUsername"] = ''
 ext["ossrhPassword"] = ''
-// Remove sonatypeStagingProfileId - not needed for Maven Central Portal
-// ext["sonatypeStagingProfileId"] = ''
 
 File secretPropsFile = project.rootProject.file('sonatype.properties')
 if (secretPropsFile.exists()) {
@@ -16,8 +14,6 @@ if (secretPropsFile.exists()) {
 } else {
     ext["ossrhUsername"] = System.getenv('OSSRH_USERNAME')
     ext["ossrhPassword"] = System.getenv('OSSRH_PASSWORD')
-    // Remove sonatypeStagingProfileId - not needed for Maven Central Portal
-    // ext["sonatypeStagingProfileId"] = System.getenv('SONATYPE_STAGING_PROFILE_ID')
     ext["signing.keyId"] = System.getenv('KEY_ID')
     ext["signing.password"] = System.getenv('KEY_PASSWORD')
     ext["signing.secretKeyRingFile"] = System.getenv('KEY_RING_FILE')

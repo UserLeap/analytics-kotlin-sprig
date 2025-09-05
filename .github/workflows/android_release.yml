@@ -1,10 +1,11 @@
 name: Segment Release
 on:
-  # Temporarily changed from workflow_call to push trigger
+  # Changing from workflow_call to a trigger on `release-candidate` branch trigger
+  # to make itterating release issues easier.
   push:
     branches:
-      - release-test
-  # Keep workflow_call for when you want to revert back
+      - release-candidate
+  # Keeping the old workflow_call here in case we need to revert back to it in the future
   # workflow_call:
   #   inputs:
   #     version:
