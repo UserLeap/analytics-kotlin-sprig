@@ -1,16 +1,10 @@
-name: Segment Release
+name: Android Segment Release
 on:
-  # Changing from workflow_call to a trigger on `release-candidate` branch trigger
-  # to make itterating release issues easier.
-  push:
-    branches:
-      - release-candidate
-  # Keeping the old workflow_call here in case we need to revert back to it in the future
-  # workflow_call:
-  #   inputs:
-  #     version:
-  #       required: true
-  #       type: string
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 env:
   # Keep original variable names for Gradle compatibility, but use new Portal credentials
   OSSRH_USERNAME: "${{ secrets.MAVEN_CENTRAL_USERNAME }}"
