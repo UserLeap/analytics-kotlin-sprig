@@ -77,7 +77,7 @@ dependencies {
 
     // Crypto libs
     implementation "org.bouncycastle:bcprov-jdk15on:1.70"
-    implementation "org.conscrypt:conscrypt-android:2.5.2"
+    implementation "org.conscrypt:conscrypt-android:2.5.3"
 
     // ---- MockK (JVM unit tests) ----
     testImplementation 'io.mockk:mockk:1.13.12'
