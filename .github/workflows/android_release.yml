@@ -57,32 +57,66 @@ jobs:
         echo "Available files in artifact directory:"
         ls -la "$ARTIFACT_SOURCE_DIR"
         
-        # Extract version and artifact info from the path
-        VERSION=$(basename "$(dirname "$ARTIFACT_SOURCE_DIR")")
-        ARTIFACT_ID=$(basename "$(dirname "$(dirname "$ARTIFACT_SOURCE_DIR")")")
-        GROUP_PATH=$(dirname "$(dirname "$(dirname "$ARTIFACT_SOURCE_DIR")")" | sed "s|$HOME/.m2/repository/||")
+        # Extract version from the source directory
+        VERSION=$(basename "$ARTIFACT_SOURCE_DIR")
         
-        echo "Detected - Group: $GROUP_PATH, Artifact: $ARTIFACT_ID, Version: $VERSION"
+        echo "Detected Version: $VERSION"
         
         echo "Creating properly structured bundle for Portal upload..."
-        # Create temporary directory with proper Maven structure
+        
+        # Create a clean temporary directory
         BUNDLE_DIR="/tmp/maven-bundle"
-        ARTIFACT_DIR="$BUNDLE_DIR/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
-        mkdir -p "$ARTIFACT_DIR"
+        rm -rf "$BUNDLE_DIR"
+        mkdir -p "$BUNDLE_DIR"
+        
+        # Create the exact directory structure that Maven Central expects
+        # The path should be: groupId/artifactId/version/
+        MAVEN_GROUP_PATH="com/userleap"  # Use the known correct group path
+        MAVEN_ARTIFACT_ID="segment-analytics-kotlin-destination"
+        BUNDLE_ARTIFACT_DIR="$BUNDLE_DIR/$MAVEN_GROUP_PATH/$MAVEN_ARTIFACT_ID/$VERSION"
+        mkdir -p "$BUNDLE_ARTIFACT_DIR"
+        
+        echo "Bundle structure will be: $MAVEN_GROUP_PATH/$MAVEN_ARTIFACT_ID/$VERSION/"
         
         # Copy all available artifacts
-        echo "Copying artifacts..."
-        cp "$ARTIFACT_SOURCE_DIR"/*.pom "$ARTIFACT_DIR/" 2>/dev/null || echo "No POM files found"
-        cp "$ARTIFACT_SOURCE_DIR"/*.aar "$ARTIFACT_DIR/" 2>/dev/null || echo "No AAR files found"
-        cp "$ARTIFACT_SOURCE_DIR"/*.jar "$ARTIFACT_DIR/" 2>/dev/null || echo "No JAR files found"
-        cp "$ARTIFACT_SOURCE_DIR"/*.asc "$ARTIFACT_DIR/" 2>/dev/null || echo "No signature files found"
+        echo "Copying artifacts from: $ARTIFACT_SOURCE_DIR"
+        echo "Copying artifacts to: $BUNDLE_ARTIFACT_DIR"
         
-        # Copy existing checksums if they exist, otherwise generate them
-        cp "$ARTIFACT_SOURCE_DIR"/*.md5 "$ARTIFACT_DIR/" 2>/dev/null || echo "No existing MD5 files"
-        cp "$ARTIFACT_SOURCE_DIR"/*.sha1 "$ARTIFACT_DIR/" 2>/dev/null || echo "No existing SHA1 files"
+        # Copy main artifacts
+        if ls "$ARTIFACT_SOURCE_DIR"/*.pom 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.pom "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied POM files"
+        fi
+        
+        if ls "$ARTIFACT_SOURCE_DIR"/*.aar 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.aar "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied AAR files"
+        fi
+        
+        if ls "$ARTIFACT_SOURCE_DIR"/*.jar 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.jar "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied JAR files"
+        fi
+        
+        # Copy signatures
+        if ls "$ARTIFACT_SOURCE_DIR"/*.asc 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.asc "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied signature files"
+        fi
+        
+        # Copy existing checksums if they exist
+        if ls "$ARTIFACT_SOURCE_DIR"/*.md5 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.md5 "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied existing MD5 files"
+        fi
+        
+        if ls "$ARTIFACT_SOURCE_DIR"/*.sha1 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.sha1 "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied existing SHA1 files"
+        fi
         
         # Generate missing checksums
-        cd "$ARTIFACT_DIR"
+        cd "$BUNDLE_ARTIFACT_DIR"
         for file in *.pom *.aar *.jar; do
           if [ -f "$file" ]; then
             if [ ! -f "$file.md5" ]; then
@@ -96,25 +130,24 @@ jobs:
           fi
         done
         
-        # Show final bundle contents
-        echo "Final bundle contents:"
-        ls -la "$ARTIFACT_DIR"
-        
-        # Show the directory structure that will be in the ZIP
-        echo "Bundle directory structure:"
+        # Verify the complete bundle structure
+        echo "Complete bundle structure:"
         cd "$BUNDLE_DIR"
         find . -type f | sort
         
-        # Create bundle zip from the root of the structure
-        zip -r "/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" .
+        echo "Files in final artifact directory:"
+        ls -la "$BUNDLE_ARTIFACT_DIR"
         
-        echo "Bundle created at: /tmp/$ARTIFACT_ID-$VERSION-bundle.zip"
-        echo "Bundle size: $(ls -lh /tmp/$ARTIFACT_ID-$VERSION-bundle.zip)"
+        # Create bundle zip from the root of the structure
+        zip -r "/tmp/$MAVEN_ARTIFACT_ID-$VERSION-bundle.zip" .
+        
+        echo "Bundle created at: /tmp/$MAVEN_ARTIFACT_ID-$VERSION-bundle.zip"
+        echo "Bundle size: $(ls -lh /tmp/$MAVEN_ARTIFACT_ID-$VERSION-bundle.zip)"
         
         echo "Uploading bundle to Maven Central Portal..."
         UPLOAD_RESPONSE=$(curl -w "HTTP_STATUS:%{http_code}" -X POST \
           -H "Content-Type: multipart/form-data" \
-          -F "bundle=@/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" \
+          -F "bundle=@/tmp/$MAVEN_ARTIFACT_ID-$VERSION-bundle.zip" \
           -u "$MAVEN_CENTRAL_USERNAME:$MAVEN_CENTRAL_TOKEN" \
           "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC")
         
