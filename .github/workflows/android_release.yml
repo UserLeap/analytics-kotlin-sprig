@@ -77,17 +77,22 @@ jobs:
         cp "$ARTIFACT_SOURCE_DIR"/*.jar "$ARTIFACT_DIR/" 2>/dev/null || echo "No JAR files found"
         cp "$ARTIFACT_SOURCE_DIR"/*.asc "$ARTIFACT_DIR/" 2>/dev/null || echo "No signature files found"
         
-        # Verify files were copied
-        echo "Files in bundle directory:"
-        ls -la "$ARTIFACT_DIR"
+        # Copy existing checksums if they exist, otherwise generate them
+        cp "$ARTIFACT_SOURCE_DIR"/*.md5 "$ARTIFACT_DIR/" 2>/dev/null || echo "No existing MD5 files"
+        cp "$ARTIFACT_SOURCE_DIR"/*.sha1 "$ARTIFACT_DIR/" 2>/dev/null || echo "No existing SHA1 files"
         
-        # Generate MD5 and SHA1 checksums for all files
+        # Generate missing checksums
         cd "$ARTIFACT_DIR"
         for file in *.pom *.aar *.jar; do
           if [ -f "$file" ]; then
-            echo "Generating checksums for: $file"
-            md5sum "$file" | cut -d' ' -f1 > "$file.md5"
-            sha1sum "$file" | cut -d' ' -f1 > "$file.sha1"
+            if [ ! -f "$file.md5" ]; then
+              echo "Generating MD5 for: $file"
+              md5sum "$file" | cut -d' ' -f1 > "$file.md5"
+            fi
+            if [ ! -f "$file.sha1" ]; then
+              echo "Generating SHA1 for: $file"
+              sha1sum "$file" | cut -d' ' -f1 > "$file.sha1"
+            fi
           fi
         done
         
@@ -95,8 +100,12 @@ jobs:
         echo "Final bundle contents:"
         ls -la "$ARTIFACT_DIR"
         
-        # Create bundle zip from the root of the structure
+        # Show the directory structure that will be in the ZIP
+        echo "Bundle directory structure:"
         cd "$BUNDLE_DIR"
+        find . -type f | sort
+        
+        # Create bundle zip from the root of the structure
         zip -r "/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" .
         
         echo "Bundle created at: /tmp/$ARTIFACT_ID-$VERSION-bundle.zip"
