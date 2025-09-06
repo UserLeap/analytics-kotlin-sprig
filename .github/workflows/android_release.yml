@@ -38,45 +38,89 @@ jobs:
         echo "Building and signing artifacts..."
         ./gradlew :destination:publishReleasePublicationToMavenLocal --info
         
-        echo "Creating properly structured bundle for Portal upload..."
-        # Get the version from Gradle properties or use a default
-        VERSION=$(./gradlew -q :destination:printVersion 2>/dev/null || echo "1.2.5")
-        GROUP_PATH="com/userleap"
-        ARTIFACT_ID="segment-analytics-kotlin-destination"
+        echo "Finding published artifacts..."
+        # Find the actual location of published artifacts
+        PUBLISHED_POM=$(find $HOME/.m2/repository -name "*segment-analytics-kotlin-destination*.pom" -type f | head -1)
         
+        if [ -z "$PUBLISHED_POM" ]; then
+          echo "ERROR: No published POM file found!"
+          echo "Searching for any POM files in local repository:"
+          find $HOME/.m2/repository -name "*.pom" -type f | head -10
+          exit 1
+        fi
+        
+        echo "Found POM at: $PUBLISHED_POM"
+        ARTIFACT_SOURCE_DIR=$(dirname "$PUBLISHED_POM")
+        echo "Artifact directory: $ARTIFACT_SOURCE_DIR"
+        
+        # List what files are actually available
+        echo "Available files in artifact directory:"
+        ls -la "$ARTIFACT_SOURCE_DIR"
+        
+        # Extract version and artifact info from the path
+        VERSION=$(basename "$(dirname "$ARTIFACT_SOURCE_DIR")")
+        ARTIFACT_ID=$(basename "$(dirname "$(dirname "$ARTIFACT_SOURCE_DIR")")")
+        GROUP_PATH=$(dirname "$(dirname "$(dirname "$ARTIFACT_SOURCE_DIR")")" | sed "s|$HOME/.m2/repository/||")
+        
+        echo "Detected - Group: $GROUP_PATH, Artifact: $ARTIFACT_ID, Version: $VERSION"
+        
+        echo "Creating properly structured bundle for Portal upload..."
         # Create temporary directory with proper Maven structure
         BUNDLE_DIR="/tmp/maven-bundle"
         ARTIFACT_DIR="$BUNDLE_DIR/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
         mkdir -p "$ARTIFACT_DIR"
         
-        # Copy artifacts from local Maven repository
-        LOCAL_REPO="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
-        cp "$LOCAL_REPO"/*.pom "$ARTIFACT_DIR/"
-        cp "$LOCAL_REPO"/*.aar "$ARTIFACT_DIR/" 2>/dev/null || true
-        cp "$LOCAL_REPO"/*.jar "$ARTIFACT_DIR/" 2>/dev/null || true
-        cp "$LOCAL_REPO"/*.asc "$ARTIFACT_DIR/"
+        # Copy all available artifacts
+        echo "Copying artifacts..."
+        cp "$ARTIFACT_SOURCE_DIR"/*.pom "$ARTIFACT_DIR/" 2>/dev/null || echo "No POM files found"
+        cp "$ARTIFACT_SOURCE_DIR"/*.aar "$ARTIFACT_DIR/" 2>/dev/null || echo "No AAR files found"
+        cp "$ARTIFACT_SOURCE_DIR"/*.jar "$ARTIFACT_DIR/" 2>/dev/null || echo "No JAR files found"
+        cp "$ARTIFACT_SOURCE_DIR"/*.asc "$ARTIFACT_DIR/" 2>/dev/null || echo "No signature files found"
+        
+        # Verify files were copied
+        echo "Files in bundle directory:"
+        ls -la "$ARTIFACT_DIR"
         
         # Generate MD5 and SHA1 checksums for all files
         cd "$ARTIFACT_DIR"
         for file in *.pom *.aar *.jar; do
           if [ -f "$file" ]; then
+            echo "Generating checksums for: $file"
             md5sum "$file" | cut -d' ' -f1 > "$file.md5"
             sha1sum "$file" | cut -d' ' -f1 > "$file.sha1"
           fi
         done
         
+        # Show final bundle contents
+        echo "Final bundle contents:"
+        ls -la "$ARTIFACT_DIR"
+        
         # Create bundle zip from the root of the structure
         cd "$BUNDLE_DIR"
         zip -r "/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" .
         
+        echo "Bundle created at: /tmp/$ARTIFACT_ID-$VERSION-bundle.zip"
+        echo "Bundle size: $(ls -lh /tmp/$ARTIFACT_ID-$VERSION-bundle.zip)"
+        
         echo "Uploading bundle to Maven Central Portal..."
-        curl -X POST \
+        UPLOAD_RESPONSE=$(curl -w "HTTP_STATUS:%{http_code}" -X POST \
           -H "Content-Type: multipart/form-data" \
           -F "bundle=@/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" \
           -u "$MAVEN_CENTRAL_USERNAME:$MAVEN_CENTRAL_TOKEN" \
-          "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
+          "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC")
         
-        echo "Upload completed!"
+        HTTP_STATUS=$(echo $UPLOAD_RESPONSE | tr -d '\n' | sed -e 's/.*HTTP_STATUS://')
+        RESPONSE_BODY=$(echo $UPLOAD_RESPONSE | sed -e 's/HTTP_STATUS:.*//g')
+        
+        echo "Upload response status: $HTTP_STATUS"
+        echo "Upload response body: $RESPONSE_BODY"
+        
+        if [ $HTTP_STATUS -eq 200 ] || [ $HTTP_STATUS -eq 201 ]; then
+          echo "Upload completed successfully!"
+        else
+          echo "Upload failed with status: $HTTP_STATUS"
+          exit 1
+        fi
       env:
         MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
