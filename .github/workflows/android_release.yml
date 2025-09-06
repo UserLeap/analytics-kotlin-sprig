@@ -1,10 +1,8 @@
 name: Android Segment Release
 on:
-  workflow_call:
-    inputs:
-      version:
-        required: true
-        type: string
+  push:
+    branches:
+      - release-build
 env:
   # Keep original variable names for Gradle compatibility, but use new Portal credentials
   OSSRH_USERNAME: "${{ secrets.MAVEN_CENTRAL_USERNAME }}"
@@ -15,7 +13,7 @@ env:
   KEY_ID: "${{ secrets.SIGNING_KEY_ID }}"
   KEY_PASSWORD: "${{ secrets.SIGNING_PASSWORD }}"
   KEY_RING_FILE: "secret.kbx"
-  TAG_NAME: "${{ github.ref_name }}" # Changed from inputs.version since we no longer have inputs
+  TAG_NAME: "${{ github.ref_name }}"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,7 +24,7 @@ jobs:
       with:
         java-version: '17'
         distribution: 'zulu'
-        cache: gradle # This will automatically cache dependencies
+        cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Download Dependencies
