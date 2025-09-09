@@ -1,8 +1,11 @@
 name: Android Segment Release
 on:
-  push:
-    branches:
-      - release-build
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
 env:
   # Keep original variable names for Gradle compatibility, but use new Portal credentials
   OSSRH_USERNAME: "${{ secrets.MAVEN_CENTRAL_USERNAME }}"
