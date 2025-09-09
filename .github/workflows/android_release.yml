@@ -5,6 +5,7 @@ on:
       version:
         required: true
         type: string
+
 env:
   # Keep original variable names for Gradle compatibility, but use new Portal credentials
   OSSRH_USERNAME: "${{ secrets.MAVEN_CENTRAL_USERNAME }}"
@@ -15,7 +16,7 @@ env:
   KEY_ID: "${{ secrets.SIGNING_KEY_ID }}"
   KEY_PASSWORD: "${{ secrets.SIGNING_PASSWORD }}"
   KEY_RING_FILE: "secret.kbx"
-  TAG_NAME: "${{ github.ref_name }}" # Changed from inputs.version since we no longer have inputs
+  TAG_NAME: "${{ github.ref_name }}"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,7 +27,7 @@ jobs:
       with:
         java-version: '17'
         distribution: 'zulu'
-        cache: gradle # This will automatically cache dependencies
+        cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Download Dependencies
@@ -40,45 +41,131 @@ jobs:
         echo "Building and signing artifacts..."
         ./gradlew :destination:publishReleasePublicationToMavenLocal --info
         
+        echo "Finding published artifacts..."
+        # Find the actual location of published artifacts
+        PUBLISHED_POM=$(find $HOME/.m2/repository -name "*segment-analytics-kotlin-destination*.pom" -type f | head -1)
+        
+        if [ -z "$PUBLISHED_POM" ]; then
+          echo "ERROR: No published POM file found!"
+          echo "Searching for any POM files in local repository:"
+          find $HOME/.m2/repository -name "*.pom" -type f | head -10
+          exit 1
+        fi
+        
+        echo "Found POM at: $PUBLISHED_POM"
+        ARTIFACT_SOURCE_DIR=$(dirname "$PUBLISHED_POM")
+        echo "Artifact directory: $ARTIFACT_SOURCE_DIR"
+        
+        # List what files are actually available
+        echo "Available files in artifact directory:"
+        ls -la "$ARTIFACT_SOURCE_DIR"
+        
+        # Extract version from the source directory
+        VERSION=$(basename "$ARTIFACT_SOURCE_DIR")
+        
+        echo "Detected Version: $VERSION"
+        
         echo "Creating properly structured bundle for Portal upload..."
-        # Get the version from Gradle properties or use a default
-        VERSION=$(./gradlew -q :destination:printVersion 2>/dev/null || echo "1.2.5")
-        GROUP_PATH="com/userleap"
-        ARTIFACT_ID="segment-analytics-kotlin-destination"
         
-        # Create temporary directory with proper Maven structure
+        # Create a clean temporary directory
         BUNDLE_DIR="/tmp/maven-bundle"
-        ARTIFACT_DIR="$BUNDLE_DIR/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
-        mkdir -p "$ARTIFACT_DIR"
+        rm -rf "$BUNDLE_DIR"
+        mkdir -p "$BUNDLE_DIR"
         
-        # Copy artifacts from local Maven repository
-        LOCAL_REPO="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
-        cp "$LOCAL_REPO"/*.pom "$ARTIFACT_DIR/"
-        cp "$LOCAL_REPO"/*.aar "$ARTIFACT_DIR/" 2>/dev/null || true
-        cp "$LOCAL_REPO"/*.jar "$ARTIFACT_DIR/" 2>/dev/null || true
-        cp "$LOCAL_REPO"/*.asc "$ARTIFACT_DIR/"
+        # Create the exact directory structure that Maven Central expects
+        # The path should be: groupId/artifactId/version/
+        MAVEN_GROUP_PATH="com/userleap"  # Use the known correct group path
+        MAVEN_ARTIFACT_ID="segment-analytics-kotlin-destination"
+        BUNDLE_ARTIFACT_DIR="$BUNDLE_DIR/$MAVEN_GROUP_PATH/$MAVEN_ARTIFACT_ID/$VERSION"
+        mkdir -p "$BUNDLE_ARTIFACT_DIR"
         
-        # Generate MD5 and SHA1 checksums for all files
-        cd "$ARTIFACT_DIR"
+        echo "Bundle structure will be: $MAVEN_GROUP_PATH/$MAVEN_ARTIFACT_ID/$VERSION/"
+        
+        # Copy all available artifacts
+        echo "Copying artifacts from: $ARTIFACT_SOURCE_DIR"
+        echo "Copying artifacts to: $BUNDLE_ARTIFACT_DIR"
+        
+        # Copy main artifacts
+        if ls "$ARTIFACT_SOURCE_DIR"/*.pom 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.pom "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied POM files"
+        fi
+        
+        if ls "$ARTIFACT_SOURCE_DIR"/*.aar 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.aar "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied AAR files"
+        fi
+        
+        if ls "$ARTIFACT_SOURCE_DIR"/*.jar 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.jar "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied JAR files"
+        fi
+        
+        # Copy signatures
+        if ls "$ARTIFACT_SOURCE_DIR"/*.asc 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.asc "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied signature files"
+        fi
+        
+        # Copy existing checksums if they exist
+        if ls "$ARTIFACT_SOURCE_DIR"/*.md5 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.md5 "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied existing MD5 files"
+        fi
+        
+        if ls "$ARTIFACT_SOURCE_DIR"/*.sha1 1> /dev/null 2>&1; then
+          cp "$ARTIFACT_SOURCE_DIR"/*.sha1 "$BUNDLE_ARTIFACT_DIR/"
+          echo "Copied existing SHA1 files"
+        fi
+        
+        # Generate missing checksums
+        cd "$BUNDLE_ARTIFACT_DIR"
         for file in *.pom *.aar *.jar; do
           if [ -f "$file" ]; then
-            md5sum "$file" | cut -d' ' -f1 > "$file.md5"
-            sha1sum "$file" | cut -d' ' -f1 > "$file.sha1"
+            if [ ! -f "$file.md5" ]; then
+              echo "Generating MD5 for: $file"
+              md5sum "$file" | cut -d' ' -f1 > "$file.md5"
+            fi
+            if [ ! -f "$file.sha1" ]; then
+              echo "Generating SHA1 for: $file"
+              sha1sum "$file" | cut -d' ' -f1 > "$file.sha1"
+            fi
           fi
         done
         
-        # Create bundle zip from the root of the structure
+        # Verify the complete bundle structure
+        echo "Complete bundle structure:"
         cd "$BUNDLE_DIR"
-        zip -r "/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" .
+        find . -type f | sort
+        
+        echo "Files in final artifact directory:"
+        ls -la "$BUNDLE_ARTIFACT_DIR"
+        
+        # Create bundle zip from the root of the structure
+        zip -r "/tmp/$MAVEN_ARTIFACT_ID-$VERSION-bundle.zip" .
+        
+        echo "Bundle created at: /tmp/$MAVEN_ARTIFACT_ID-$VERSION-bundle.zip"
+        echo "Bundle size: $(ls -lh /tmp/$MAVEN_ARTIFACT_ID-$VERSION-bundle.zip)"
         
         echo "Uploading bundle to Maven Central Portal..."
-        curl -X POST \
+        UPLOAD_RESPONSE=$(curl -w "HTTP_STATUS:%{http_code}" -X POST \
           -H "Content-Type: multipart/form-data" \
-          -F "bundle=@/tmp/$ARTIFACT_ID-$VERSION-bundle.zip" \
+          -F "bundle=@/tmp/$MAVEN_ARTIFACT_ID-$VERSION-bundle.zip" \
           -u "$MAVEN_CENTRAL_USERNAME:$MAVEN_CENTRAL_TOKEN" \
-          "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
+          "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC")
         
-        echo "Upload completed!"
+        HTTP_STATUS=$(echo $UPLOAD_RESPONSE | tr -d '\n' | sed -e 's/.*HTTP_STATUS://')
+        RESPONSE_BODY=$(echo $UPLOAD_RESPONSE | sed -e 's/HTTP_STATUS:.*//g')
+        
+        echo "Upload response status: $HTTP_STATUS"
+        echo "Upload response body: $RESPONSE_BODY"
+        
+        if [ $HTTP_STATUS -eq 200 ] || [ $HTTP_STATUS -eq 201 ]; then
+          echo "Upload completed successfully!"
+        else
+          echo "Upload failed with status: $HTTP_STATUS"
+          exit 1
+        fi
       env:
         MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
