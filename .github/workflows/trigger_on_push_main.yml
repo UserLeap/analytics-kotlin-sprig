@@ -31,7 +31,7 @@ jobs:
     uses: UserLeap/common-workflows/.github/workflows/_generic_create_release_tag.yml@main
     with:
       tag: ${{ needs.get-tag.outputs.tag }}
-      release_url: https://api.github.com/repos/UserLeap/analytics-kotlin-sprig-test/releases
+      release_url: https://api.github.com/repos/UserLeap/analytics-kotlin-sprig/releases
     secrets: inherit
   android-release:
     if: ${{ needs.create-release-and-tag.outputs.new-tag == 'true' }}
