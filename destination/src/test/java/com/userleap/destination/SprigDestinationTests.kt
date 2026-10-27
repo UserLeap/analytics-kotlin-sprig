@@ -156,6 +156,9 @@ class SprigDestinationTests {
     fun `alias is handled correctly`() {
         val newId = "new ID"
         val oldId = "old ID"
+
+        every { Sprig.setUserIdentifier(any()) } returns Unit
+
         val event = AliasEvent(userId = newId, previousId = oldId).apply { anonymousId = "" }
 
         val aliasEvent = sprigDestination.alias(event)
